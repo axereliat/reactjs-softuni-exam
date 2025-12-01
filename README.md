@@ -10,5 +10,4 @@ git clone https://github.com/softuni/reactjs-softuni-exam.git
 ## Author
 
 Mario Markov 
-GitHub Username: axereliat  
-Profile: https://github.com/axereliat
+SoftUni Username: axereliat
