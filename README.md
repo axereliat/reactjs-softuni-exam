@@ -306,3 +306,8 @@ SoftUni Username: axereliat
 ---
 
 Made with ❤️ for SoftUni ReactJS Course
+
+wrangler pages deploy dist --project-name=reactjs-softuni-exam
+
+LIVE DEMO:
+https://reactjs-softuni-exam1.pages.dev
