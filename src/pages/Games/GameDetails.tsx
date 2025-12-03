@@ -149,12 +149,26 @@ export const GameDetails = () => {
                 <Col xs={24} lg={16}>
                     <Card
                         cover={
-                            game.imageUrl ? <img
-                                alt={game.title}
-                                src={game.imageUrl}
-                                style={{maxHeight: '400px', objectFit: 'cover'}}
-                                onError={() => setImageError(true)}
-                            /> : <span>N/A</span>
+                            game.imageUrl && !imageError ? (
+                                <img
+                                    alt={game.title}
+                                    src={game.imageUrl}
+                                    style={{maxHeight: '400px', objectFit: 'cover'}}
+                                    onError={() => setImageError(true)}
+                                />
+                            ) : (
+                                <div style={{
+                                    height: '400px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: '#f0f0f0'
+                                }}>
+                                    <span style={{fontSize: '16px', color: '#888'}}>
+                                        Image not available
+                                    </span>
+                                </div>
+                            )
                         }
                     >
                         <div style={{marginBottom: '16px'}}>
