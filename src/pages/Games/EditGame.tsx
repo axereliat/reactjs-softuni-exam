@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Select, InputNumber, Spin } from 'antd';
+import { Form, Input, Button, Card, message, Select, InputNumber, Spin, Upload } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+import type { UploadFile } from 'antd';
 import { MainLayout } from '../../components/common/MainLayout';
 import { gamesService } from '../../services/api/gamesService';
+import { cloudinaryService } from '../../services/cloudinary/cloudinaryService';
 import { useAuth } from '../../contexts/AuthContext';
 import type { GameFormData } from '../../types';
 
@@ -41,6 +44,9 @@ export const EditGame = () => {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string>('');
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [form] = Form.useForm();
@@ -66,6 +72,7 @@ export const EditGame = () => {
         return;
       }
 
+      setOriginalImageUrl(gameData.imageUrl);
       form.setFieldsValue({
         title: gameData.title,
         genre: gameData.genre,
@@ -82,6 +89,28 @@ export const EditGame = () => {
     }
   };
 
+  const handleFileChange = (info: any) => {
+    const { fileList: newFileList } = info;
+    setFileList(newFileList.slice(-1));
+
+    if (newFileList.length > 0) {
+      const file = newFileList[0].originFileObj;
+
+      const validationError = cloudinaryService.validateImage(file);
+      if (validationError) {
+        message.error(validationError);
+        setFileList([]);
+        setUploadedFile(null);
+        return;
+      }
+
+      setUploadedFile(file);
+      form.setFieldsValue({ imageUrl: '' });
+    } else {
+      setUploadedFile(null);
+    }
+  };
+
   const onFinish = async (values: GameFormData) => {
     if (!currentUser) {
       message.error('You must be logged in to edit a game');
@@ -90,7 +119,28 @@ export const EditGame = () => {
 
     try {
       setLoading(true);
-      await gamesService.update(id!, values);
+
+      let imageUrl = values.imageUrl;
+
+      // Upload new image if file is selected
+      if (uploadedFile) {
+        message.loading({ content: 'Uploading image...', key: 'upload' });
+        imageUrl = await cloudinaryService.uploadImage(uploadedFile);
+        message.success({ content: 'Image uploaded!', key: 'upload' });
+
+        // Note: Cloudinary deletion requires backend API
+        // Old image will remain in Cloudinary but won't be referenced
+        if (originalImageUrl && originalImageUrl.includes('cloudinary.com')) {
+          await cloudinaryService.deleteImage(originalImageUrl);
+        }
+      }
+
+      if (!imageUrl) {
+        message.error('Please provide an image URL or upload an image');
+        return;
+      }
+
+      await gamesService.update(id!, { ...values, imageUrl });
       message.success('Game updated successfully!');
       navigate(`/games/${id}`);
     } catch (error: any) {
@@ -157,15 +207,35 @@ export const EditGame = () => {
               />
             </Form.Item>
 
+            <Form.Item label="Game Image">
+              <Upload
+                fileList={fileList}
+                onChange={handleFileChange}
+                beforeUpload={() => false}
+                accept="image/*"
+                maxCount={1}
+              >
+                <Button icon={<UploadOutlined />} size="large">
+                  Upload New Image
+                </Button>
+              </Upload>
+              <div style={{ marginTop: '8px', color: '#888', fontSize: '12px' }}>
+                Max size: 10MB. Supports: JPEG, PNG, GIF, WebP
+              </div>
+            </Form.Item>
+
             <Form.Item
-              label="Image URL"
+              label="Or provide Image URL"
               name="imageUrl"
               rules={[
-                { required: true, message: 'Please enter an image URL!' },
                 { type: 'url', message: 'Please enter a valid URL!' }
               ]}
             >
-              <Input placeholder="https://example.com/image.jpg" size="large" />
+              <Input
+                placeholder="https://example.com/image.jpg"
+                size="large"
+                disabled={!!uploadedFile}
+              />
             </Form.Item>
 
             <Form.Item

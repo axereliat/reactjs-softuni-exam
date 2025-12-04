@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, Card, message, Select, InputNumber } from 'antd';
+import { Form, Input, Button, Card, message, Select, InputNumber, Upload } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+import type { UploadFile } from 'antd';
 import { MainLayout } from '../../components/common/MainLayout';
 import { gamesService } from '../../services/api/gamesService';
+import { cloudinaryService } from '../../services/cloudinary/cloudinaryService';
 import { useAuth } from '../../contexts/AuthContext';
 import type { GameFormData } from '../../types';
 
@@ -39,20 +42,56 @@ const PLATFORMS = [
 
 export const CreateGame = () => {
   const [loading, setLoading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const [form] = Form.useForm();
+
+  const handleFileChange = (info: any) => {
+    const { fileList: newFileList } = info;
+    setFileList(newFileList.slice(-1)); // Keep only the last file
+
+    if (newFileList.length > 0) {
+      const file = newFileList[0].originFileObj;
+
+      // Validate file
+      const validationError = cloudinaryService.validateImage(file);
+      if (validationError) {
+        message.error(validationError);
+        setFileList([]);
+        setUploadedFile(null);
+        return;
+      }
+
+      setUploadedFile(file);
+    } else {
+      setUploadedFile(null);
+    }
+  };
 
   const onFinish = async (values: GameFormData) => {
-      console.log('currentUser', currentUser);
     if (!currentUser) {
       message.error('You must be logged in to create a game');
       return;
     }
 
+    // Validate that an image file is uploaded
+    if (!uploadedFile) {
+      message.error('Please upload an image');
+      return;
+    }
+
     try {
       setLoading(true);
+
+      // Upload image to Cloudinary
+      message.loading({ content: 'Uploading image...', key: 'upload' });
+      const imageUrl = await cloudinaryService.uploadImage(uploadedFile);
+      message.success({ content: 'Image uploaded!', key: 'upload' });
+
       const gameId = await gamesService.create(
-        values,
+        { ...values, imageUrl },
         currentUser.uid,
         currentUser.email!
       );
@@ -71,6 +110,7 @@ export const CreateGame = () => {
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <Card title="Add New Game">
           <Form
+            form={form}
             layout="vertical"
             onFinish={onFinish}
             initialValues={{
@@ -115,14 +155,25 @@ export const CreateGame = () => {
             </Form.Item>
 
             <Form.Item
-              label="Image URL"
-              name="imageUrl"
-              rules={[
-                { required: true, message: 'Please enter an image URL!' },
-                { type: 'url', message: 'Please enter a valid URL!' }
-              ]}
+              label="Game Image"
+              required
+              help={!uploadedFile ? 'Please upload an image' : undefined}
+              validateStatus={!uploadedFile ? 'warning' : 'success'}
             >
-              <Input placeholder="https://example.com/image.jpg" size="large" />
+              <Upload
+                fileList={fileList}
+                onChange={handleFileChange}
+                beforeUpload={() => false}
+                accept="image/*"
+                maxCount={1}
+              >
+                <Button icon={<UploadOutlined />} size="large">
+                  Upload Image
+                </Button>
+              </Upload>
+              <div style={{ marginTop: '8px', color: '#888', fontSize: '12px' }}>
+                Max size: 10MB. Supports: JPEG, PNG, GIF, WebP
+              </div>
             </Form.Item>
 
             <Form.Item
