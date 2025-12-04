@@ -20,7 +20,9 @@ export const CreateSession = () => {
   const [form] = Form.useForm();
 
   useEffect(() => {
-    loadGames();
+    if (currentUser) {
+      loadGames();
+    }
 
     // Check if we have gameId and gameTitle from navigation state
     const state = location.state as { gameId?: string; gameTitle?: string };
@@ -29,11 +31,14 @@ export const CreateSession = () => {
         gameId: state.gameId
       });
     }
-  }, [location]);
+  }, [location, currentUser]);
 
   const loadGames = async () => {
+    if (!currentUser) return;
+
     try {
-      const data = await gamesService.getAll();
+      // Load only games created by the current user
+      const data = await gamesService.getByAuthor(currentUser.uid);
       setGames(data);
     } catch (error) {
       message.error('Failed to load games');

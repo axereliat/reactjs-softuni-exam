@@ -43,6 +43,7 @@ export const CreateGame = () => {
   const navigate = useNavigate();
 
   const onFinish = async (values: GameFormData) => {
+      console.log('currentUser', currentUser);
     if (!currentUser) {
       message.error('You must be logged in to create a game');
       return;

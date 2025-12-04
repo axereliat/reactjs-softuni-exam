@@ -62,18 +62,27 @@ export const gamesService = {
 
   // Get games by author
   getByAuthor: async (authorId: string): Promise<Game[]> => {
+      console.log(authorId);
     const q = query(
       collection(db, COLLECTION_NAME),
-      where('authorId', '==', authorId),
-      orderBy('createdAt', 'desc')
+      where('authorId', '==', authorId)
+      // Note: orderBy removed to avoid requiring composite index
+      // Sorting will be done client-side
     );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
+    const games = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate(),
       updatedAt: doc.data().updatedAt?.toDate()
     } as Game));
+
+    // Sort by createdAt on client-side
+    return games.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA; // Descending order (newest first)
+    });
   },
 
   // Update a game

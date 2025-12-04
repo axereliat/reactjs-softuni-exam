@@ -36,6 +36,10 @@ export const Profile = () => {
         reviewsService.getByUserId(currentUser.uid)
       ]);
 
+      console.log(games);
+      console.log(sessions);
+      console.log(reviews);
+
       setMyGames(games);
       setMySessions(sessions);
       setMyReviews(reviews);
