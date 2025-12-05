@@ -1,6 +1,7 @@
 // Cloudinary upload service for image handling
 
-const CLOUDINARY_UPLOAD_PRESET = 'games_preset'; // You'll create this in Cloudinary dashboard
+// Try using the default unsigned preset, or create 'games_preset' in your dashboard
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'ml_default';
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
@@ -23,14 +24,16 @@ export const cloudinaryService = {
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Cloudinary error response:', errorData);
+        throw new Error(errorData.error?.message || 'Upload failed');
       }
 
       const data = await response.json();
       return data.secure_url; // Returns the permanent image URL
     } catch (error) {
       console.error('Cloudinary upload error:', error);
-      throw new Error('Failed to upload image');
+      throw error;
     }
   },
 

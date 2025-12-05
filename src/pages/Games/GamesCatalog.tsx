@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Row, Col, Card, Input, Select, Spin, message, Empty, Tag, Rate } from 'antd';
+import { Row, Col, Card, Spin, message, Empty, Tag, Rate, Input } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { MainLayout } from '../../components/common/MainLayout';
 import { gamesService } from '../../services/api/gamesService';
 import type { Game } from '../../types';
 
 const { Search } = Input;
-const { Option } = Select;
 
 export const GamesCatalog = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [genreFilter, setGenreFilter] = useState<string>('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,7 +21,7 @@ export const GamesCatalog = () => {
 
   useEffect(() => {
     filterGames();
-  }, [games, searchTerm, genreFilter]);
+  }, [games, searchTerm]);
 
   const loadGames = async () => {
     try {
@@ -40,23 +38,17 @@ export const GamesCatalog = () => {
   };
 
   const filterGames = () => {
-    let filtered = [...games];
-
-    if (searchTerm) {
-      filtered = filtered.filter(game =>
-        game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        game.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    if (!searchTerm) {
+      setFilteredGames(games);
+      return;
     }
 
-    if (genreFilter !== 'all') {
-      filtered = filtered.filter(game => game.genre === genreFilter);
-    }
-
+    const filtered = games.filter(game =>
+      game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      game.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     setFilteredGames(filtered);
   };
-
-  const uniqueGenres = Array.from(new Set(games.map(game => game.genre)));
 
   if (loading) {
     return (
@@ -72,32 +64,17 @@ export const GamesCatalog = () => {
     <MainLayout>
       <h1>Games Catalog</h1>
 
-      {/* Search and Filter */}
-      <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-        <Col xs={24} md={16}>
-          <Search
-            placeholder="Search games..."
-            allowClear
-            size="large"
-            onSearch={setSearchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </Col>
-        <Col xs={24} md={8}>
-          <Select
-            size="large"
-            style={{ width: '100%' }}
-            placeholder="Filter by genre"
-            value={genreFilter}
-            onChange={setGenreFilter}
-          >
-            <Option value="all">All Genres</Option>
-            {uniqueGenres.map(genre => (
-              <Option key={genre} value={genre}>{genre}</Option>
-            ))}
-          </Select>
-        </Col>
-      </Row>
+      {/* Search Bar */}
+      <div style={{ marginBottom: '24px' }}>
+        <Search
+          placeholder="Search games by title or description..."
+          allowClear
+          size="large"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ maxWidth: '600px' }}
+        />
+      </div>
 
       {/* Games Grid */}
       {filteredGames.length > 0 ? (
