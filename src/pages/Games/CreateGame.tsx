@@ -8,37 +8,10 @@ import { gamesService } from '../../services/api/gamesService';
 import { cloudinaryService } from '../../services/cloudinary/cloudinaryService';
 import { useAuth } from '../../contexts/AuthContext';
 import type { GameFormData } from '../../types';
+import {GENRES, PLATFORMS} from "../../services/constants/contants.ts";
 
 const { TextArea } = Input;
 const { Option } = Select;
-
-const GENRES = [
-  'Action',
-  'Adventure',
-  'RPG',
-  'Strategy',
-  'Sports',
-  'Racing',
-  'Puzzle',
-  'Simulation',
-  'Fighting',
-  'Shooter',
-  'Horror',
-  'Platform',
-  'MMORPG',
-  'Battle Royale'
-];
-
-const PLATFORMS = [
-  'PC',
-  'PlayStation 5',
-  'PlayStation 4',
-  'Xbox Series X/S',
-  'Xbox One',
-  'Nintendo Switch',
-  'Mobile',
-  'VR'
-];
 
 export const CreateGame = () => {
   const [loading, setLoading] = useState(false);
