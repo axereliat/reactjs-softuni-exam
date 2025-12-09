@@ -1,8 +1,11 @@
+export type UserRole = 'user' | 'moderator' | 'admin';
+
 export interface User {
   uid: string;
   email: string;
   displayName?: string;
   photoURL?: string;
+  role: UserRole;
   createdAt: Date;
 }
 

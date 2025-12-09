@@ -2,7 +2,6 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import {AuthProvider} from './contexts/AuthContext';
 import {PrivateRoute} from './guards/PrivateRoute';
 
-// Pages
 import {Home} from './pages/Home/Home';
 import {Login} from './pages/Auth/Login';
 import {Register} from './pages/Auth/Register';
@@ -20,10 +19,9 @@ function App() {
         <BrowserRouter>
             <AuthProvider>
                 <Routes>
-                    {/* Public Routes */}
                     <Route path="/login" element={<Login/>}/>
                     <Route path="/register" element={<Register/>}/>
-                    {/* Private Routes */}
+                    <Route path="/" element={<Home/>}/>
                     <Route
                         path="/games/create"
                         element={
@@ -77,6 +75,56 @@ function App() {
                             </PrivateRoute>
                         }
                     />
+
+                    {/* ROLE-BASED ROUTE EXAMPLES - Uncomment and customize as needed */}
+
+                    {/* Example 1: Admin-only route */}
+                    {/*
+                    <Route
+                        path="/admin/dashboard"
+                        element={
+                            <RoleBasedRoute allowedRoles={['admin']}>
+                                <AdminDashboard />
+                            </RoleBasedRoute>
+                        }
+                    />
+                    */}
+
+                    {/* Example 2: Moderator and Admin route */}
+                    {/*
+                    <Route
+                        path="/moderation"
+                        element={
+                            <RoleBasedRoute allowedRoles={['admin', 'moderator']}>
+                                <ModerationPanel />
+                            </RoleBasedRoute>
+                        }
+                    />
+                    */}
+
+                    {/* Example 3: All authenticated users (equivalent to PrivateRoute) */}
+                    {/*
+                    <Route
+                        path="/games/create"
+                        element={
+                            <RoleBasedRoute allowedRoles={['user', 'moderator', 'admin']}>
+                                <CreateGame />
+                            </RoleBasedRoute>
+                        }
+                    />
+                    */}
+
+                    {/* Example 4: Custom redirect on access denied */}
+                    {/*
+                    <Route
+                        path="/admin/settings"
+                        element={
+                            <RoleBasedRoute allowedRoles={['admin']} redirectTo="/dashboard">
+                                <AdminSettings />
+                            </RoleBasedRoute>
+                        }
+                    />
+                    */}
                 </Routes>
             </AuthProvider>
         </BrowserRouter>

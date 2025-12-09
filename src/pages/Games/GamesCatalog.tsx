@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Row, Col, Card, Spin, message, Empty, Tag, Rate, Input, Dropdown, Button, Space} from 'antd';
+import {Row, Col, Card, Spin, message, Empty, Tag, Rate, Input, Select, Space} from 'antd';
 import {EyeOutlined} from '@ant-design/icons';
 import {MainLayout} from '../../components/common/MainLayout';
 import {gamesService} from '../../services/api/gamesService';
@@ -14,6 +14,7 @@ export const GamesCatalog = () => {
     const [filteredGames, setFilteredGames] = useState<Game[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedGenre, setSelectedGenre] = useState<string>('All');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -41,6 +42,7 @@ export const GamesCatalog = () => {
     const filterGames = () => {
         if (!searchTerm) {
             setFilteredGames(games);
+
             return;
         }
 
@@ -61,6 +63,18 @@ export const GamesCatalog = () => {
         );
     }
 
+    const handleGenreChange = (value: string) => {
+        setSelectedGenre(value);
+        if (value === 'All') {
+            setFilteredGames(games);
+        } else {
+            const filtered = games.filter(game => game.genre === value);
+            setFilteredGames(filtered);
+        }
+    };
+
+    const DEFAULT_GENRES = ['All', ...GENRES];
+
     return (
         <MainLayout>
             <h1>Games Catalog</h1>
@@ -74,18 +88,17 @@ export const GamesCatalog = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{width: '500px'}}
                 />
-                <div style={{padding: 20}}>
-                    <Dropdown
-                        menu={{
-                            items: GENRES.map((genre, idx) => ({
-                                key: idx.toString(),
-                                label: <span>{genre}</span>,
-                            })),
-                        }}
-                        placement="bottomLeft" arrow>
-                        <Button>Category</Button>
-                    </Dropdown>
-                </div>
+                <Select
+                    size="large"
+                    value={selectedGenre}
+                    onChange={handleGenreChange}
+                    style={{width: 200}}
+                    placeholder="Select Category"
+                    options={DEFAULT_GENRES.map(genre => ({
+                        label: genre,
+                        value: genre
+                    }))}
+                />
             </Space>
 
             {/* Games Grid */}

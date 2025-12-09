@@ -24,7 +24,8 @@ export const Login = () => {
       message.success('Login successful!');
       navigate('/');
     } catch (error: any) {
-      message.error(error.message || 'Failed to login');
+        console.log('error', error);
+      message.error('Invalid credentials');
     } finally {
       setLoading(false);
     }
